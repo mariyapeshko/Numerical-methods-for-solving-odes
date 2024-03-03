@@ -1,0 +1,101 @@
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+#функция для решения ОДУ явным методом Эйлера
+def euler_explicit(f, y0, t_span, h):
+
+    t0, t_end = t_span
+    num_steps = int((t_end - t0) / h) + 1
+    t = np.linspace(t0, t_end, num_steps)
+    y = np.zeros((num_steps, len(y0)))
+    y[0] = y0
+
+    for i in range(1, num_steps):
+        y[i] = y[i - 1] + h * f(t[i - 1], y[i - 1])
+
+    return t, y
+
+
+#функция для решения ОДУ методом Рунге-Кутты 4-го порядка
+def runge_kutta_4(f, y0, t0, tn, h):
+    n = int((tn - t0) / h)
+    t = t0
+    y = y0
+    t_values = [t]
+    y_values = [y0]
+    for i in range(n):
+        k1 = h * f(t, y)
+        k2 = h * f(t + h / 2, y + k1 / 2)
+        k3 = h * f(t + h / 2, y + k2 / 2)
+        k4 = h * f(t + h, y + k3)
+
+        y = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        t += h
+        t_values.append(t)
+        y_values.append(y)
+
+    return np.array(t_values), np.array(y_values)
+
+#функция для решения ОДУ методом Рунге-Кутты 3/8
+def runge_kutta_38(f, y0, t0, tn, h):
+    n = int((tn - t0) / h)
+    t = t0
+    y = y0
+    for i in range(n):
+        k1 = h * f(t, y)
+        k2 = h * f(t + h / 3, y + k1 / 3)
+        k3 = h * f(t + 2 * h / 3, y - k1 / 3 + k2)
+        k4 = h * f(t + h, y + k1 - k2 + k3)
+
+        y = y + (k1 + 3 * k2 + 3 * k3 + k4) / 8
+        t += h
+    return y
+
+#Реализация методов для уравнения гармонического осциллятора
+def f(t, y):
+    return np.array([y[1], -y[0]])
+#Метод Эйлера
+y0 = np.array([1.0, 0.0]) #начальные условия
+h = 0.01
+t_span = (0, 10)
+result = euler_explicit(f, y0, t_span, h)
+
+# Построение графика х и х'
+t_euler, y_euler = euler_explicit(f, y0, t_span, h)
+plt.figure(figsize=(12, 6))
+plt.plot(t_euler, y_euler, label='x(t)')
+plt.xlabel('t')
+plt.ylabel("x, x'")
+plt.legend(["х(t)", "x'(t)"])
+plt.grid()
+plt.title("График решения методом Эйлера")
+plt.show()
+
+#Метод Рунге-Кутты 4-го порядка классический
+def g(t, y):
+    w = 2.0 * np.sin(y[0])
+    return np.array([y[1], -w**2 * y[0]])
+
+x0 = 1.0
+v0 = 0.0
+y0 = np.array([x0, v0])
+t_max = 10.0
+dt = 0.01
+
+t_values, y_values = runge_kutta_4(g, y0, 0, t_max, dt)
+
+x_values = y_values[:, 0]
+v_values = y_values[:, 1]
+
+# Построение графиков x и х'
+plt.figure(figsize=(10, 6))
+plt.plot(t_values, x_values, label="x(t)", color="blue")
+plt.plot(t_values, v_values, label="v(t)", color="orange")
+plt.xlabel("t")
+plt.ylabel("x, x'")
+plt.grid(True)
+plt.legend()
+plt.title("График решения методом Рунге-Кутты")
+plt.show()
+
